@@ -1,49 +1,61 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { UserContext } from '../UserContext'
 import { UserType } from '../UserContext'
+
 const User = ({ item }) => {
     const { userId, setUserId } = useContext(UserType);
-    console.log(userId)
-    const [requestSent, setRequestSent] = useState(false);
-    const sendFollow = async (currentUserId, selectedUsedId) => {
+    const [isFollowing, setIsFollowing] = useState(item?.followers?.includes(userId));
+    console.log("sds",item);
+
+    useEffect(() => {
+        console.log("isFollowing state:", isFollowing);
+    }, [isFollowing]);
+
+    const sendFollow = async (currentUserId, selectedUserId) => {
         try {
+            console.log("Sending follow request...");
             const response = await fetch("http://10.0.0.242:8080/follow", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ currentUserId, selectedUsedId })
-            })
+                body: JSON.stringify({ currentUserId, selectedUserId })
+            });x
+            console.log("Follow response status:", response.status);
+            console.log("Follow response body:", await response.text());
             if (response.ok) {
-                setRequestSent(true);
+                setIsFollowing(true);
+                console.log("Follow success");
+            } else {
+                setIsFollowing(false);
+                console.log("Follow failed");
             }
+        } catch (err) {
+            console.log("Error sending follow request:", err);
         }
-        catch (err) {
-
-        }
-    }
-    const handleUnfollow  =async (targetId) =>{
-        try{
+    };
+    
+    const handleUnfollow = async (targetUserId) => {
+        try {
             const response = await fetch("http://10.0.0.242:8080/users/unfollow", {
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 },
-                body:JSON.stringify({
-                    loggedInUserId:userId,
-                    targetUserId:targetId
+                body: JSON.stringify({
+                    loggedInUserId: userId,
+                    targetUserId: targetUserId
                 })
-            })
-            if(response.ok){
-                setRequestSent(false);
-                console.log("Unfollowd Successfully")
-
+            });
+            if (response.ok) {
+                setIsFollowing(false);
             }
-        }catch(err){
-            console.log("Error",err)
+        } catch (err) {
+            console.log("Error unfollowing user:", err);
         }
-    }
+    };
+
     return (
         <View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -60,9 +72,9 @@ const User = ({ item }) => {
                 />
                 <Text style={{ fontSize: 15, fontWeight: "bold", flex: 1 }}>{item?.name}</Text>
 
-                {requestSent || item?.followers?.includes(userId) ? (
+                {isFollowing ? (
                     <Pressable
-                        onPress={()=>handleUnfollow(item._id)}
+                        onPress={() => handleUnfollow(item._id)}
                         style={{
                             borderColor: "#d0d0d0",
                             borderWidth: 1,
@@ -87,10 +99,7 @@ const User = ({ item }) => {
                         <Text style={{ textAlign: "center", fontSize: 15, fontWeight: "bold" }}>Follow</Text>
                     </Pressable>
                 )}
-
-
             </View>
-
         </View>
     )
 }

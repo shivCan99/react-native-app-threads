@@ -159,31 +159,144 @@ app.get("/users", async (req, res) => {
 });
 
 
-//endpoint to follow a particular user
 app.post("/follow", async (req, res) => {
-    const { currentUserId, selectedUsedId } = req.body;
+    const { currentUserId, selectedUserId } = req.body;
+
     try {
-        await User.findByIdAndUpdate(selectedUsedId, {
-            $push: { followers: currentUserId }
+        const user = await User.findByIdAndUpdate(selectedUserId, {
+            $push: { followers: currentUserId },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error in following a user" });
+    }
+});
+
+
+
+
+
+
+//endpoint to unfollow a user
+app.post("/users/unfollow", async (req, res) => {
+    const { loggedInUserId, targetUserId } = req.body;
+    try {
+        await User.findByIdAndUpdate(targetUserId, {
+            $pull: { followers: loggedInUserId }
         })
-        res.status(200);
+        res.status(200).json({ message: "Unfollowed Successfully" })
     }
     catch (err) {
-        console.log("error", err)
-        res.status(500).json({ message: "Error in following the user" })
+        res.status(500).json({ message: "error unfollowing the user" })
     }
 })
 
-//endpoint to unfollow a user
-app.post("/users/unfollow", async(req,res)=>{
-    const {loggedInUserId, targetUserId} = req.body;
+//endpoint to create a new post in the backend
+app.post("/create-post", async (req, res) => {
+    try {
+      const { content, userId } = req.body;
+  
+      const newPostData = {
+        user: userId,
+      };
+  
+      if (content) {
+        newPostData.content = content;
+      }
+  
+      const newPost = new Post(newPostData);
+  
+      await newPost.save();
+  
+      res.status(200).json({ message: "Post saved successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "post creation failed" });
+    }
+  });
+
+//enpoint for likes
+app.put("/posts/:postId/:userId/like", async(req,res)=>{
     try{
-       await User.findByIdAndUpdate(targetUserId,{
-        $pull:{followers:loggedInUserId}
-       }) 
-       res.status(200).json({message:"Unfollowed Successfully"})
+        const postId = req.params.postId;
+        const userId = req.params.userId;
+
+        const post = await Post.findById(postId).populate("user", "name");
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            postId,
+            {$addToSet:{likes:userId}},
+            {new:true}
+        )
+
+        if(!updatedPost){
+            return res.status(404).json({ message: "post not found" })
+        }
+        updatedPost.user = post.user;
+        res.json(updatedPost)
     }
     catch(err){
-        res.status(500).json({message:"error unfollowing the user"})
+        console.log(err);
+        res.status(500).json({ message: "an error occured while liking" })
+    }
+})
+
+//endpoint unlike the post
+app.put("/posts/:postId/:userId/unlike", async(req,res)=>{
+    try{
+        const postId = req.params.postId;
+        const userId = req.params.userId;
+
+        const post = await Post.findById(postId).populate("user", "name");
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            postId,
+            {$pull:{likes:userId}},
+            {new:true}
+        )
+
+        if(!updatedPost){
+            return res.status(404).json({ message: "post not found" })
+        }
+        updatedPost.user = post.user;
+        res.json(updatedPost)
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({ message: "an error occured while liking" })
+    }
+})
+
+//endpoint to get all the post
+app.get("/get-posts",async(req,res)=>{
+    try{
+        const posts = await Post.find().populate("user","name").sort({createdAt:-1});
+        res.status(200).json(posts)
+    }
+    catch(err){
+        res.status(500).json();
+    }
+})
+
+//endpoint to get the details of the user
+app.get("/profile/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
+
+        return res.status(200).json({ user });
+    }
+    catch (err) {
+        res.status(500).json({ message: "Error while getting ther user details" })
     }
 })

@@ -17,10 +17,10 @@ const StackNavigator = () => {
   function BottomTabs() {
     return <Tab.Navigator>
       <Tab.Screen
-        name='Home'
+        name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: "Home",
           tabBarLabelStyle: { color: 'black' },
           headerShown: false,
           tabBarIcon: ({ focused }) => focused ?
