@@ -128,7 +128,7 @@ const HomeScreen = () => {
             >
               {post?.user?.name}
             </Text>
-            <Text>{post?.content}</Text>
+            <Text style={{width:320}}>{post?.content}</Text>
 
             <View
               style={{

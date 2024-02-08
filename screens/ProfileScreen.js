@@ -13,7 +13,7 @@ const ProfileScreen = () => {
     const fetchProfile = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/profile/${userId}`
+          `http://10.0.0.242:8080/profile/${userId}`
         );
         const { user } = response.data;
         setUser(user);
@@ -46,7 +46,7 @@ const ProfileScreen = () => {
               backgroundColor: "#D0D0D0",
             }}
           >
-            <Text>Threads.net</Text>
+            <Text>reactNative.net</Text>
           </View>
         </View>
 
@@ -75,7 +75,7 @@ const ProfileScreen = () => {
           <View>
             <Text style={{ fontSize: 15, fontWeight: "400" }}>BTech.</Text>
             <Text style={{ fontSize: 15, fontWeight: "400" }}>
-              Movie Buff | Musical Nerd
+              Music | Cricket 
             </Text>
             <Text style={{ fontSize: 15, fontWeight: "400" }}>
               Love Yourself
@@ -83,7 +83,7 @@ const ProfileScreen = () => {
           </View>
         </View>
         <Text style={{ color: "gray", fontSize: 15, marginTop: 10 }}>
-          {user?.followers?.length} followers
+          {(user?.followers?.length) } followers
         </Text>
         <View style={{flexDirection:"row",alignItems:"center",gap:10,marginTop:20}}>
           <Pressable
